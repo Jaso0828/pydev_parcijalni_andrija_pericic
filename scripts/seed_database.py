@@ -4,6 +4,8 @@ from offers.models import Offer, OfferItem
 from decimal import Decimal
 from random import randint, choice
 from datetime import datetime, timedelta
+from customers.models import Customer
+import random
 
 def run():
     # List of product names and descriptions
@@ -59,6 +61,20 @@ def run():
         {"name": "HDMI Cable", "description": "High-speed HDMI cable with gold-plated connectors for reliable video transmission."},
     ]
 
+    if Customer.objects.count() == 0:
+        print("Creating dummy customers...")
+        for i in range(1, 11):
+            Customer.objects.create(
+                name=f'Company {i}',
+                vat_id=1000000 + i,
+                street=f'Street {i}',
+                city=f'City {i}',
+                country='Croatia'
+            )
+        print("Customer seed successfully")
+    else:
+        print("Products already exist, skipping seeding.")
+
     # Create products
     if Product.objects.count() == 0:
         print("Seeding 50 products...")
@@ -82,7 +98,9 @@ def run():
     if Offer.objects.count() == 0:
         print("Seeding 15 offers...")
         products = list(Product.objects.all())
+        customers = list(Customer.objects.all())
         for i in range(1, 16):
+            customer = random.choice(customers)  
             offer_date = datetime.now() - timedelta(days=randint(1, 30))
             selected_products = [choice(products) for _ in range(randint(3, 7))]
 
@@ -91,7 +109,7 @@ def run():
             total = sub_total + tax
 
             offer = Offer.objects.create(
-                customer=superuser,
+                customer=customer,
                 date=offer_date.date(),
                 sub_total=sub_total,
                 tax=tax,
